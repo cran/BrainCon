@@ -4,46 +4,64 @@
 \alias{population.test}
 \title{The one-sample population inference}
 \usage{
-population.test(popEst, alpha = 0.05, c0 = 0.1, MBT = 3000)
+population.test(
+  popEst,
+  alpha = 0.05,
+  c0 = 0.1,
+  targetSet = NULL,
+  MBT = 5000,
+  simplify = !is.null(targetSet)
+)
 }
 \arguments{
 \item{popEst}{A \code{popEst} class object.}
 
 \item{alpha}{significance level, default value is \code{0.05}.}
 
-\item{c0}{threshold of the exceedance rate of the false discovery proportion (FDP),
-default value is \code{0.1}.
-The choice of \code{c0} depends on the empirical problem. A smaller value of \code{c0} will
+\item{c0}{threshold of the exceedance rate of FDP,
+default value is \code{0.1}. A smaller value of \code{c0} will
 reduce false positives, but it may also cost more false negatives.}
 
-\item{MBT}{times of multiplier bootstrap, default value is \code{3000}.}
+\item{targetSet}{a two-column matrix. Each row contains two index corresponding to a pair of variables of interest.
+If \code{NULL}, any pair of two variables is considered to be of interest.}
+
+\item{MBT}{times of multiplier bootstrap, default value is \code{5000}.}
+
+\item{simplify}{a logical indicating whether results should be simplified if possible.}
 }
 \value{
-A \eqn{p*p} matrix with values 0 or 1.
+If \code{simplify} is \code{FALSE}, a \eqn{p*p} matrix with values 0 or 1 is returned, and 1 means nonzero.
+
+And if \code{simplify} is \code{TRUE}, a two-column matrix is returned,
+indicating the row index and the column index of recovered nonzero partial correlations.
+We only retain the results which the row index is less than the column index.
+Those with larger test statistics are sorted first.
 }
 \description{
 Identify the nonzero partial correlations in one-sample population,
-based on false discovery proportion controlling.
-at \eqn{\alpha=0.05}, considering time dependence.
-Input  data \eqn{Z} , contains values of p interested variables.
+based on controlling the rate of the false discovery proportion (FDP) exceeding \eqn{c0}
+at \eqn{\alpha}, considering time dependence.
+Input a \code{popEst} class object returned by \code{\link{population.est}}.
 \cr
 \cr
 }
 \examples{
 ## Quick example for the one-sample population inference
 data(popsimA)
-pc = population.est(popsimA)     # estimating partial correlation coefficients
-Res = population.test(pc)        # conducting hypothesis test
-
-## Inference on the first subject in population
-Res1 = individual.test(pc$ind.est[[1]])
+# estimating partial correlation coefficients by scaled lasso
+pc = population.est(popsimA)
+# conducting hypothesis test
+Res = population.test(pc)
+# conducting hypothesis test in variables of interest
+set = cbind(rep(7:9, each = 10), 1:10)
+Res_like = population.test(pc, targetSet = set)
 
 }
 \references{
 Qiu Y. and Zhou X. (2021).
 Inference on multi-level partial correlations
 based on multi-subject time series data,
-\emph{Journal of the American Statistical Association}, 00, 1-15
+\emph{Journal of the American Statistical Association}, 00, 1-15.
 }
 \seealso{
 \code{\link{individual.test}}.

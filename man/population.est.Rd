@@ -4,16 +4,29 @@
 \alias{population.est}
 \title{Estimate population-level partial correlation coefficients}
 \usage{
-population.est(Z, alpha = 0.05, lambda = NULL, ind.ci = FALSE)
+population.est(
+  Z,
+  lambda = NULL,
+  type = c("slasso", "lasso"),
+  alpha = 0.05,
+  ind.ci = FALSE
+)
 }
 \arguments{
-\item{Z}{is a \eqn{n*p*m} dimensional array, where \eqn{m} is number of subjects.}
+\item{Z}{If each individual shares the same number of periods of time, \code{Z} can be a \eqn{n*p*m} dimensional array, where \eqn{m} is number of individuals.
+In general, \code{Z} should be a m-length list, and each element in the list is a \eqn{n_i*p} matrix, where \eqn{n_i} stands for the number of periods of time of the i-th individual.}
 
-\item{alpha}{significance level, default value is \code{0.05}.}
+\item{lambda}{a scalar or a m-length vector, representing the penalty parameters of order \eqn{\sqrt{\log(p)/n_i}} for each individual.
+If a scalar, the penalty parameters used in each individual are the same.
+If a m-length vector, the penalty parameters for each individual are specified in order.
+And if \code{NULL}, penalty parameters are specified by \code{type}.
+More details about the penalty parameters are in \code{\link{individual.est}}.}
 
-\item{lambda}{a penalty parameter used in lasso of order \code{sqrt(log(p)/n)}, if \code{NULL}, \code{2*sqrt(log(p)/n)} will be used.}
+\item{type}{a character string representing the method of estimation. \code{"slasso"} means scaled lasso, and \code{"lasso"} means lasso. Default value is \code{"slasso"}.}
 
-\item{ind.ci}{a logical indicating whether to compute \eqn{1-\alpha} confidence interval of each subject, default value is \code{FALSE}.}
+\item{alpha}{a numeric scalar, default value is \code{0.05}. It is used when \code{ind.ci} is \code{TRUE}.}
+
+\item{ind.ci}{a logical indicating whether to compute \eqn{1-\alpha} confidence intervals of each subject, default value is \code{FALSE}.}
 }
 \value{
 A \code{popEst} class object containing two components.
@@ -21,22 +34,29 @@ A \code{popEst} class object containing two components.
 \code{coef} a \eqn{p*p} partial correlation coefficients matrix.
 
 \code{ind.est} a \eqn{m}-length list, containing estimates for each individuals.
+
+\code{type} regression type in estimation.
 }
 \description{
 Estimate population-level partial correlation coefficients in time series data.
-And also return each individual-level coefficients.
+And also return coefficients for each individual.
+Input time series data for population as a 3-dimensional array or a list.
 \cr
 \cr
 }
 \examples{
-## Quick example for the individual-level estimates
+## Quick example for the population-level estimates
 data(popsimA)
-pc = population.est(popsimA)        # estimating partial correlation coefficients
+# estimating partial correlation coefficients by scaled lasso
+pc = population.est(popsimA)
+
+## Inference on the first subject in population
+Res_1 = individual.test(pc$ind.est[[1]])
 
 }
 \references{
 Qiu Y. and Zhou X. (2021).
 Inference on multi-level partial correlations
 based on multi-subject time series data,
-\emph{Journal of the American Statistical Association}, 00, 1-15
+\emph{Journal of the American Statistical Association}, 00, 1-15.
 }

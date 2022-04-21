@@ -5,14 +5,14 @@
 \alias{popsimB}
 \title{Simulation time series data for population B}
 \format{
-An object of class \code{array} of dimension 50 x 10 x 15.
+An object of class \code{array} of dimension 50 x 10 x 10.
 }
 \usage{
 popsimB
 }
 \description{
 A dataset containing values of 10 interested
-variables of 15 subjects over 50 periods.
+variables of 10 subjects over 50 periods.
 }
 \seealso{
 \code{\link{popsimA}}.

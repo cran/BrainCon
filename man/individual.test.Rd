@@ -4,48 +4,66 @@
 \alias{individual.test}
 \title{Identify nonzero individual-level partial correlations}
 \usage{
-individual.test(indEst, alpha = 0.05, c0 = 0.1, MBT = 3000)
+individual.test(
+  indEst,
+  alpha = 0.05,
+  c0 = 0.1,
+  targetSet = NULL,
+  MBT = 3000,
+  simplify = !is.null(targetSet)
+)
 }
 \arguments{
 \item{indEst}{An \code{indEst} class object.}
 
 \item{alpha}{significance level, default value is \code{0.05}.}
 
-\item{c0}{threshold of the exceedance rate of the false discovery proportion (FDP),
+\item{c0}{threshold of the exceedance rate of FDP,
 default value is \code{0.1}.
 The choice of \code{c0} depends on the empirical problem. A smaller value of \code{c0} will
 reduce false positives, but it may also cost more false negatives.}
 
+\item{targetSet}{a two-column matrix. Each row contains two index corresponding to a pair of variables of interest.
+If \code{NULL}, any pair of two variables is considered to be of interest.}
+
 \item{MBT}{times of multiplier bootstrap, default value is \code{3000}.}
+
+\item{simplify}{a logical indicating whether results should be simplified if possible.}
 }
 \value{
-A \eqn{p*p} matrix with values 0 or 1.
+If \code{simplify} is \code{FALSE}, a \eqn{p*p} matrix with values 0 or 1 is returned.
 If the j-th row and k-th column of the matrix is 1,
 then the partial correlation coefficient between
 the j-th variable and the k-th variable is identified to be nonzero.
+
+And if \code{simplify} is \code{TRUE}, a two-column matrix is returned,
+indicating the row index and the column index of recovered nonzero partial correlations.
+We only retain the results which the row index is less than the column index.
+Those with larger test statistics are sorted first.
 }
 \description{
 Identify nonzero individual-level partial correlations in time series data
-by controlling the exceedance rate of the false discovery proportion (FDP)
-at \eqn{\alpha=0.05}, considering time dependence.
-Input data \eqn{X} contains values of p interested
-variables over n periods.
+by controlling the rate of the false discovery proportion (FDP) exceeding \eqn{c0}
+at \eqn{\alpha}, considering time dependence.
+Input an \code{indEst} class object returned by \code{\link{individual.est}} or \code{\link{population.est}}.
 \cr
 \cr
 }
 \examples{
 ## Quick example for the individual-level inference
 data(indsim)
-pc = individual.est(indsim)       # estimating partial correlation coefficients
-Res = individual.test(pc)         # conducting hypothesis test
+# estimating partial correlation coefficients by scaled lasso
+pc = individual.est(indsim)
+# conducting hypothesis test
+Res = individual.test(pc)
 
 }
 \references{
 Qiu Y. and Zhou X. (2021).
 Inference on multi-level partial correlations
 based on multi-subject time series data,
-\emph{Journal of the American Statistical Association}, 00, 1-15
+\emph{Journal of the American Statistical Association}, 00, 1-15.
 }
 \seealso{
-\code{\link{population.test}} for making inferences on one individual in the population.
+\code{\link{population.est}} for making inferences on one individual in the population.
 }

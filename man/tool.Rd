@@ -3,12 +3,28 @@
 \name{tool}
 \alias{tool}
 \alias{QS}
+\alias{normalize.set}
+\alias{scaledlasso}
 \title{tool functions}
 \usage{
 QS(u)
+
+normalize.set(set, p)
+
+scaledlasso(X, y, lam0 = NULL)
 }
 \arguments{
 \item{u}{numeric value.}
+
+\item{set}{two-column numeric matrix.}
+
+\item{p}{the number of variables.}
+
+\item{X}{the input matrix of scaled lasso.}
+
+\item{y}{response variable of scaled lasso.}
+
+\item{lam0}{numeric value, the penalty parameter of scaled lasso.}
 }
 \value{
 Intermediate results.

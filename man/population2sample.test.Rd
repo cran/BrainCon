@@ -4,7 +4,15 @@
 \alias{population2sample.test}
 \title{Identify differences of partial correlations between two populations}
 \usage{
-population2sample.test(popEst1, popEst2, alpha = 0.05, c0 = 0.1, MBT = 3000)
+population2sample.test(
+  popEst1,
+  popEst2,
+  alpha = 0.05,
+  c0 = 0.1,
+  targetSet = NULL,
+  MBT = 5000,
+  simplify = !is.null(targetSet)
+)
 }
 \arguments{
 \item{popEst1}{A \code{popEst} class object.}
@@ -13,28 +21,36 @@ population2sample.test(popEst1, popEst2, alpha = 0.05, c0 = 0.1, MBT = 3000)
 
 \item{alpha}{significance level, default value is \code{0.05}.}
 
-\item{c0}{threshold of the exceedance rate of the false discovery proportion (FDP),
-default value is \code{0.1}.
-The choice of \code{c0} depends on the empirical problem. A smaller value of \code{c0} will
+\item{c0}{threshold of the exceedance rate of FDP,
+default value is \code{0.1}. A smaller value of \code{c0} will
 reduce false positives, but it may also cost more false negatives.}
 
-\item{MBT}{times of multiplier bootstrap, default value is \code{3000}.}
+\item{targetSet}{a two-column matrix. Each row contains two index corresponding to a pair of variables of interest.
+If \code{NULL}, any pair of two variables is considered to be of interest.}
+
+\item{MBT}{times of multiplier bootstrap, default value is \code{5000}.}
+
+\item{simplify}{a logical indicating whether results should be simplified if possible.}
 }
 \value{
-A \eqn{p*p} matrix with values 0 or 1.
+If \code{simplify} is \code{FALSE}, a \eqn{p*p} matrix with values 0 or 1 is returned.
 If the j-th row and k-th column of the matrix is 1,
 then the partial correlation coefficients between
 the j-th variable and the k-th variable in two populations
 are identified to be unequal.
+
+And if \code{simplify} is \code{TRUE}, a two-column matrix is returned,
+indicating the row index and the column index of recovered unequal partial correlations.
+We only retain the results which the row index is less than the column index.
+Those with larger test statistics are sorted first.
 }
 \description{
 Identify differences of partial correlations between two populations
-in two groups of time series data
-by controlling the exceedance rate of the false discovery proportion (FDP)
-at \eqn{\alpha=0.05}, considering time dependence.
-Input two groups of data \eqn{Z_1} and \eqn{Z_2}, each contains values of p interested
-variables of individuals
-(the number of individuals in two groups can be different) over n periods.
+in two groups of time series data by
+controlling the rate of the false discovery proportion (FDP) exceeding \eqn{c0}
+at \eqn{\alpha}, considering time dependence.
+Input two \code{popEst} class objects returned by \code{\link{population.est}}
+(the number of individuals in two groups can be different).
 \cr
 \cr
 }
@@ -42,14 +58,18 @@ variables of individuals
 ## Quick example for the two-sample case inference
 data(popsimA)
 data(popsimB)
-pc1 = population.est(popsimA)
-pc2 = population.est(popsimB)
-Res = population2sample.test(pc1, pc2)          # conducting hypothesis test
+# estimating partial correlation coefficients by lasso (scaled lasso does the same)
+pc1 = population.est(popsimA, type = 'l')
+pc2 = population.est(popsimB, type = 'l')
+# conducting hypothesis test
+Res = population2sample.test(pc1, pc2)
+# conducting hypothesis test and returning simplified results
+Res_s = population2sample.test(pc1, pc2, simplify = TRUE)
 
 }
 \references{
 Qiu Y. and Zhou X. (2021).
 Inference on multi-level partial correlations
 based on multi-subject time series data,
-\emph{Journal of the American Statistical Association}, 00, 1-15
+\emph{Journal of the American Statistical Association}, 00, 1-15.
 }

@@ -4,41 +4,61 @@
 \alias{population.test.MinPv}
 \title{The one-sample population inference using Genovese and Wasserman's method}
 \usage{
-population.test.MinPv(popEst, alpha = 0.05, c0 = 0.1)
+population.test.MinPv(
+  popEst,
+  alpha = 0.05,
+  c0 = 0.1,
+  targetSet = NULL,
+  simplify = !is.null(targetSet)
+)
 }
 \arguments{
 \item{popEst}{A \code{popEst} class object.}
 
 \item{alpha}{significance level, default value is \code{0.05}.}
 
-\item{c0}{threshold of the exceedance rate of the false discovery proportion (FDP),
+\item{c0}{threshold of the exceedance rate of FDP,
 default value is \code{0.1}.}
+
+\item{targetSet}{a two-column matrix. Each row contains two index corresponding to a pair of variables of interest.
+If \code{NULL}, any pair of two variables is considered to be of interest.}
+
+\item{simplify}{a logical indicating whether results should be simplified if possible.}
 }
 \value{
-A  \eqn{p*p} matrix with values 0 or 1.
+If \code{simplify} is \code{FALSE}, a \eqn{p*p} matrix with values 0 or 1 is returned, and 1 means nonzero.
+
+And if \code{simplify} is \code{TRUE}, a two-column matrix is returned,
+indicating the row index and the column index of recovered nonzero partial correlations.
+Those with lower p values are sorted first.
 }
 \description{
 Identify the nonzero partial correlations in one-sample population,
-based on controlling the exceedance rate of the false discovery proportion (FDP)
-at \eqn{\alpha=0.05}. The method is based on the minimum of the p-values.
-Input  data \eqn{Z} , contains values of p interested variables.
+based on controlling the rate of the false discovery proportion (FDP) exceeding \eqn{c0}
+at \eqn{\alpha}. The method is based on the minimum of the p-values.
+Input a \code{popEst} class object returned by \code{\link{population.est}}.
 \cr
 \cr
 }
 \examples{
 ## Quick example for the one-sample population inference
 data(popsimA)
-pc = population.est(popsimA)            # estimating partial correlation coefficients
-Res  = population.test.MinPv(pc)        # conducting hypothesis test
+# estimating partial correlation coefficients
+pc = population.est(popsimA)
+# conducting hypothesis test
+Res  = population.test.MinPv(pc)
 
 }
 \references{
-Genovese C., and Wasserman L. (2006).
+Genovese C. and Wasserman L. (2006).
 Exceedance Control of the False Discovery Proportion,
-\emph{Journal of the American Statistical Association}, 101, 1408-1417
+\emph{Journal of the American Statistical Association}, 101, 1408-1417.
 
 Qiu Y. and Zhou X. (2021).
 Inference on multi-level partial correlations
 based on multi-subject time series data,
-\emph{Journal of the American Statistical Association}, 00, 1-15
+\emph{Journal of the American Statistical Association}, 00, 1-15.
+}
+\seealso{
+\code{\link{population.test}}.
 }

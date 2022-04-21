@@ -1,14 +1,18 @@
 #' Estimate individual-level partial correlation coefficients
 #'
 #' Estimate individual-level partial correlation coefficients in time series data
-#' with \eqn{1-\alpha} confidence interval.
-#' It's not a joint confidence interval for multiple tests.
+#' with \eqn{1-\alpha} confidence intervals.
+#' Note that these are confidence intervals for single parameters, not simultaneous confidence intervals.
 #' \cr
 #' \cr
 #'
-#'@param X time series data of an individual which is a \eqn{n*p} numeric matrix.
+#'@param X time series data of an individual which is a \eqn{n*p} numeric matrix, where \eqn{n} is the number of periods of time and \eqn{p} is the number of variables.
+#'@param lambda a penalty parameter of order \eqn{\sqrt{\log(p)/n}}.
+#'If \code{NULL}, \eqn{\sqrt{2*2.01/n*\log(p*(\log(p))^{1.5}/n^{0.5})}} is used in scaled lasso, and \eqn{\sqrt{2*\log(p)/n}} is used in lasso.
+#'Increasing the penalty parameter may lead to larger residuals in the node-wise regression,
+#'causing larger absolute values of estimates of partial correlation coefficients, which may cause more false positives in subsequent tests.
+#'@param type  a character string representing the method of estimation. \code{"slasso"} means scaled lasso, and \code{"lasso"} means lasso. Default value is \code{"slasso"}.
 #'@param alpha significance level, default value is \code{0.05}.
-#'@param lambda a penalty parameter used in lasso of order \code{sqrt(log(p)/n)}, if \code{NULL}, \code{2*sqrt(log(p)/n)} will be used.
 #'@param ci  a logical indicating whether to compute \eqn{1-\alpha} confidence interval, default value is \code{TRUE}.
 #'
 #'@return An \code{indEst} class object containing two or four components.
@@ -21,20 +25,38 @@
 #' \code{ci.upper} a \eqn{p*p} numeric matrix containing the upper bound of \eqn{1-\alpha} confidence interval,
 #' returned if \code{ci} is \code{TRUE}.
 #'
-#' \code{asym.ex} a matrix measuring the asymptotical expansion of estimates, which will be used for multiple tests.
+#' \code{asym.ex} a matrix measuring the asymptotic expansion of estimates, which will be used for multiple tests.
+#'
+#' \code{type} regression type in estimation.
+#'
+#'@seealso \code{\link{population.est}}.
 #'
 #'@examples
 #' ## Quick example for the individual-level estimates
 #' data(indsim)
-#' pc = individual.est(indsim)       # estimating partial correlation coefficients
+#' # estimating partial correlation coefficients by scaled lasso
+#' pc = individual.est(indsim)
 #'
 #' @references
 #' Qiu Y. and Zhou X. (2021).
 #' Inference on multi-level partial correlations
 #' based on multi-subject time series data,
-#' \emph{Journal of the American Statistical Association}, 00, 1-15
+#' \emph{Journal of the American Statistical Association}, 00, 1-15.
+#' @references
+#' Sun T. and Zhang C. (2012).
+#' Scaled Sparse Linear Regression,
+#' \emph{Biometrika}, 99, 879–898.
+#' @references
+#' Liu W. (2013).
+#' Gaussian Graphical Model Estimation With False Discovery Rate Control,
+#' \emph{The Annals of Statistics}, 41, 2948–2978.
+#' @references
+#' Ren Z., Sun T., Zhang C. and Zhou H. (2015).
+#' Asymptotic Normality and Optimalities in Estimation of Large Gaussian Graphical Models,
+#' \emph{The Annals of Statistics}, 43, 991–1026.
 
-individual.est <- function(X, alpha = 0.05, lambda = NULL, ci = TRUE){
+individual.est <- function(X, lambda = NULL, type = c("slasso", "lasso"), alpha = 0.05, ci = TRUE){
+  X = as.matrix(X)
   n = dim(X)[1]
   p = dim(X)[2]
   Mp = p * (p - 1) / 2
@@ -43,13 +65,28 @@ individual.est <- function(X, alpha = 0.05, lambda = NULL, ci = TRUE){
   sdX = apply(X, 2, sd)
   Eresidual = matrix(0, n, p)
   CoefMatrix = matrix(0, p, p - 1)
-  if (is.null(lambda)) lambda = 2 * sqrt(log(p) / n)
-  for (i in 1 : p){
-    lasso = glmnet(x = XS[,-i], y = X[,i], intercept = FALSE, standardize = FALSE)
-    Coef = coef.glmnet(lasso, s = lambda)
-    CoefMatrix[i, Coef@i] = Coef@x / sdX[-i][Coef@i]
-    Predict = predict.glmnet(lasso, s = lambda, newx = XS[,-i])
-    Eresidual[, i] = X[,i] - Predict[,1]
+  type = match.arg(type)
+  if (is.null(lambda)){
+    if (type == "slasso"){
+      lambda = sqrt(2 * 2.01 * log(p * (log(p))^(1.5) / sqrt(n)) / n)
+    } else if (type == "lasso"){
+      lambda = sqrt(2 * log(p) / n)
+    }
+  }
+  if (type == "slasso"){
+    for (i in 1 : p){
+      slasso = scaledlasso(X = XS[, -i], y = X[, i], lam0 = lambda)
+      Eresidual[, i] = slasso$residuals
+      CoefMatrix[i, ] = slasso$coefficients / sdX[-i]
+    }
+  } else if (type == "lasso"){
+    for (i in 1 : p){
+      lasso = glmnet(x = XS[,-i], y = X[,i], intercept = FALSE, standardize = FALSE)
+      Coef = coef.glmnet(lasso, s = lambda * sdX[i])
+      CoefMatrix[i, ] = as.vector(Coef)[-1] / sdX[-i]
+      Predict = predict.glmnet(lasso, s = lambda* sdX[i], newx = XS[,-i])
+      Eresidual[, i] = X[,i] - Predict[,1]
+    }
   }
   CovRes = t(Eresidual) %*% Eresidual / n
   m = 1
@@ -65,7 +102,7 @@ individual.est <- function(X, alpha = 0.05, lambda = NULL, ci = TRUE){
     }
   }
   BTAllcenter = scale(BTAll, scale = FALSE)
-  if (!ci) return(structure(list(coef = Est, asym.ex=BTAllcenter),class='indEst'))
+  if (!ci) return(structure(list(coef = Est, asym.ex = BTAllcenter, type = type), class='indEst'))
   NumAll = c()
   DenAll = c()
   for(i in 1 : Mp){
@@ -91,6 +128,5 @@ individual.est <- function(X, alpha = 0.05, lambda = NULL, ci = TRUE){
       m = m + 1
     }
   }
-  return(structure(list(coef = Est, ci.lower = ci.lower, ci.upper = ci.upper, asym.ex=BTAllcenter), class='indEst'))
+  return(structure(list(coef = Est, ci.lower = ci.lower, ci.upper = ci.upper, asym.ex = BTAllcenter, type = type), class = 'indEst'))
 }
-
