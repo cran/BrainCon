@@ -1,7 +1,7 @@
 Package: BrainCon
 Type: Package
 Title: Inference the Partial Correlations Based on Time Series Data
-Version: 0.2.0
+Version: 0.3.0
 Author: Yunhaonan Yang [aut, cre],
   Peng Wu [aut],
   Xin Gai [aut],
@@ -22,6 +22,6 @@ RoxygenNote: 7.1.1
 Imports: glmnet, MASS
 Depends: R (>= 2.10)
 NeedsCompilation: no
-Packaged: 2022-04-21 15:47:57 UTC; Dinic
+Packaged: 2023-05-22 06:37:46 UTC; Dinic
 Repository: CRAN
-Date/Publication: 2022-04-21 16:00:02 UTC
+Date/Publication: 2023-05-22 06:50:02 UTC

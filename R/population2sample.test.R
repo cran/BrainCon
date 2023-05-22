@@ -51,7 +51,7 @@
 
 population2sample.test <- function(popEst1, popEst2, alpha = 0.05, c0 = 0.1, targetSet = NULL, MBT = 5000, simplify = !is.null(targetSet)){
   force(simplify)
-  if (class(popEst1) != 'popEst' | class(popEst2) != 'popEst')
+  if (!inherits(popEst1, 'popEst') | !inherits(popEst1, 'popEst'))
     stop("The arguments popEst1 and popEst2 require 'popEst' class inputs!\n")
   EstAll1 = popEst1$coef
   EstAll2 = popEst2$coef

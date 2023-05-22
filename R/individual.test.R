@@ -46,7 +46,7 @@
 
 individual.test <- function(indEst, alpha = 0.05, c0 = 0.1, targetSet = NULL, MBT = 3000, simplify = !is.null(targetSet)){
   force(simplify)
-  if (class(indEst) != 'indEst')
+  if (!inherits(indEst, 'indEst'))
     stop("The argument indEst requires an 'indEst' class input!\n")
   Est=indEst$coef
   BTAllcenter = indEst$asym.ex

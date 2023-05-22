@@ -43,7 +43,7 @@
 
 population.test.MinPv <- function(popEst, alpha = 0.05, c0 = 0.1, targetSet = NULL, simplify = !is.null(targetSet)){
   force(simplify)
-  if (class(popEst) != 'popEst')
+  if (!inherits(popEst, 'popEst'))
     stop("The argument popEst requires a 'popEst' class input!\n")
   EstAll = popEst$coef
   p = nrow(EstAll)

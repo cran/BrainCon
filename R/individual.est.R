@@ -63,6 +63,8 @@ individual.est <- function(X, lambda = NULL, type = c("slasso", "lasso"), alpha 
   X = scale(X, scale = FALSE)
   XS = scale(X, center = FALSE)
   sdX = apply(X, 2, sd)
+  if (min(sdX) == 0)
+    stop("The argument X should not have any constant column!\n")
   Eresidual = matrix(0, n, p)
   CoefMatrix = matrix(0, p, p - 1)
   type = match.arg(type)
@@ -95,7 +97,7 @@ individual.est <- function(X, lambda = NULL, type = c("slasso", "lasso"), alpha 
   for (i in 1 : (p - 1)){
     for (j in (i + 1) : p){
       temp = CovRes[i, j] + diag(CovRes)[i] * CoefMatrix[j, i] + diag(CovRes)[j] * CoefMatrix[i, j - 1]
-      Est[j, i] = Est[i, j] = temp / sqrt(diag(CovRes)[i] * diag(CovRes)[j])
+      Est[j, i] = Est[i, j] = pmin(pmax(-1, temp / sqrt(diag(CovRes)[i] * diag(CovRes)[j])), 1)
       omegaHat = - temp / (diag(CovRes)[i] * diag(CovRes)[j])
       BTAll[, m] = ( Eresidual[, i] * Eresidual[, j] + temp ) / sqrt(diag(CovRes)[i] * diag(CovRes)[j]) - omegaHat * sqrt(diag(CovRes)[j]) * ( Eresidual[, i]^2 - CovRes[i, i] ) / (2 * sqrt(diag(CovRes)[i]))  - omegaHat * sqrt(diag(CovRes)[i]) * ( Eresidual[, j]^2 - CovRes[j, j] ) / (2 * sqrt(diag(CovRes)[j]))
       m = m + 1
